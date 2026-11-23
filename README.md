@@ -72,10 +72,10 @@ instead (all buttons and tiles have spoken labels).
 
 ### Hosting
 
-The site is plain static files, published to GitHub Pages by
-`.github/workflows/pages.yml` on every push to `main`. One-time setup: in the
-repository's **Settings → Pages**, set **Source** to **GitHub Actions**. The site will
-then be at `https://<your-github-username>.github.io/amd-apps/`.
+The site is plain static files, published by GitHub Pages ("Deploy from a branch",
+`main`, root folder) automatically on every push to `main`. It is at
+https://ramakocherlakota.github.io/amd-apps/. The `.nojekyll` file tells GitHub to
+serve the files as-is.
 
 To try it locally: `python3 -m http.server` in the repo root, then open
 http://localhost:8000/word-guess/.
