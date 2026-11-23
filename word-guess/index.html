@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en" data-theme="yellow" data-size="large">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Word Guess</title>
+  <meta name="description" content="A word-guessing game with giant letters and spoken clues, for low vision.">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="Word Guess">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon-180.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <button id="btn-clues" class="bar-btn" type="button">
+      <span class="bar-icon" aria-hidden="true">🔊</span><span>Clues</span>
+    </button>
+    <button id="btn-history" class="bar-btn" type="button">
+      <span class="bar-icon" aria-hidden="true">☰</span><span>Guesses</span>
+    </button>
+    <button id="btn-menu" class="bar-btn" type="button">
+      <span class="bar-icon" aria-hidden="true">⚙</span><span>Menu</span>
+    </button>
+  </header>
+
+  <main class="play">
+    <p id="status" class="status" aria-live="polite"></p>
+    <div id="row" class="row" role="group" aria-label="Your guess"></div>
+    <section class="known" aria-label="What you know so far">
+      <div id="known-row" class="known-row"></div>
+      <div id="known-extra" class="known-extra"></div>
+    </section>
+  </main>
+
+  <nav id="keyboard" class="keyboard" aria-label="Letters"></nav>
+
+  <!-- Full-screen panels -->
+  <div id="panel-end" class="panel" hidden>
+    <div class="panel-body center">
+      <p id="end-title" class="end-title"></p>
+      <div id="end-word" class="row end-word"></div>
+      <p id="end-stats" class="end-stats"></p>
+      <button id="btn-end-new" class="big-btn primary" type="button">New word</button>
+      <button id="btn-end-hear" class="big-btn" type="button">🔊 Hear it again</button>
+      <button id="btn-end-menu" class="big-btn" type="button">⚙ Menu</button>
+    </div>
+  </div>
+
+  <div id="panel-history" class="panel" hidden>
+    <div class="panel-body">
+      <div class="panel-head">
+        <h2>Your guesses</h2>
+        <button class="big-btn close" data-close type="button">Close</button>
+      </div>
+      <div id="history-list" class="history-list"></div>
+      <div class="legend">
+        <span><span class="mini correct">✓</span> right spot</span>
+        <span><span class="mini present">↔</span> in the word, wrong spot</span>
+        <span><span class="mini absent">✕</span> not in the word</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="panel-menu" class="panel" hidden>
+    <div class="panel-body">
+      <div class="panel-head">
+        <h2>Menu</h2>
+        <button class="big-btn close" data-close type="button">Close</button>
+      </div>
+
+      <button id="btn-new" class="big-btn primary wide" type="button">Start a new word</button>
+      <button id="btn-help" class="big-btn wide" type="button">🔊 How to play</button>
+
+      <div class="setting">
+        <h3>Word length</h3>
+        <div class="choices" data-setting="length">
+          <button type="button" data-value="4">4 letters</button>
+          <button type="button" data-value="5">5 letters</button>
+        </div>
+        <p class="note">Takes effect with the next new word.</p>
+      </div>
+
+      <div class="setting">
+        <h3>Number of guesses</h3>
+        <div class="choices" data-setting="maxGuesses">
+          <button type="button" data-value="6">6</button>
+          <button type="button" data-value="8">8</button>
+          <button type="button" data-value="0">No limit</button>
+        </div>
+        <p class="note">Takes effect with the next new word.</p>
+      </div>
+
+      <div class="setting">
+        <h3>Colors</h3>
+        <div class="choices" data-setting="theme">
+          <button type="button" data-value="yellow">Yellow on black</button>
+          <button type="button" data-value="white">White on black</button>
+          <button type="button" data-value="light">Black on white</button>
+        </div>
+      </div>
+
+      <div class="setting">
+        <h3>Letter size</h3>
+        <div class="choices" data-setting="size">
+          <button type="button" data-value="large">Large</button>
+          <button type="button" data-value="huge">Huge</button>
+        </div>
+      </div>
+
+      <div class="setting">
+        <h3>Keyboard order</h3>
+        <div class="choices" data-setting="layout">
+          <button type="button" data-value="abc">A B C D</button>
+          <button type="button" data-value="qwerty">Q W E R T Y</button>
+        </div>
+      </div>
+
+      <div class="setting">
+        <h3>Speech</h3>
+        <div class="choices" data-setting="speakKeys">
+          <button type="button" data-value="true">Say each letter I tap</button>
+          <button type="button" data-value="false">Stay quiet when I tap</button>
+        </div>
+        <div class="choices" data-setting="examples">
+          <button type="button" data-value="true">“B as in ball”</button>
+          <button type="button" data-value="false">Just “B”</button>
+        </div>
+        <div class="choices" data-setting="autoSpeak">
+          <button type="button" data-value="true">Read results aloud</button>
+          <button type="button" data-value="false">Only when I ask</button>
+        </div>
+      </div>
+
+      <div class="setting">
+        <h3>Speaking speed</h3>
+        <div class="choices" data-setting="rate">
+          <button type="button" data-value="0.7">Slow</button>
+          <button type="button" data-value="0.85">Medium</button>
+          <button type="button" data-value="1">Normal</button>
+        </div>
+      </div>
+
+      <div class="setting">
+        <h3>Voice</h3>
+        <select id="voice-select" class="voice-select"></select>
+        <button id="btn-test-voice" class="big-btn" type="button">🔊 Test voice</button>
+        <p class="note">For a clearer voice on iPad: Settings → Accessibility → Spoken Content → Voices, and download an “Enhanced” English voice.</p>
+      </div>
+
+      <div class="setting">
+        <h3>Guesses must be real words</h3>
+        <div class="choices" data-setting="strict">
+          <button type="button" data-value="true">Yes</button>
+          <button type="button" data-value="false">No, accept anything</button>
+        </div>
+      </div>
+
+      <p id="menu-stats" class="note stats-line"></p>
+    </div>
+  </div>
+
+  <div id="panel-confirm" class="panel" hidden>
+    <div class="panel-body center">
+      <p class="end-title">Give up on this word and start a new one?</p>
+      <button id="btn-confirm-yes" class="big-btn primary" type="button">Yes, new word</button>
+      <button class="big-btn" data-close type="button">No, keep playing</button>
+    </div>
+  </div>
+
+  <script src="words.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
