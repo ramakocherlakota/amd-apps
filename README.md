@@ -8,6 +8,22 @@ no server or account.
 |---|---|
 | [Word Guess](word-guess/) | Guess a hidden 4- or 5-letter word. Giant letters, spoken clues. |
 
+## Layout
+
+Each app lives in its own folder and gets its own web address, under a shared home
+page that links to all of them:
+
+```
+https://<your-github-username>.github.io/amd-apps/              ← home page (index.html)
+https://<your-github-username>.github.io/amd-apps/word-guess/   ← Word Guess
+https://<your-github-username>.github.io/amd-apps/<next-app>/   ← future apps
+```
+
+To add an app: create a new folder with its own `index.html`, and add a card for it
+to the root `index.html` (copy the Word Guess `<a class="app">` line) and a row to the
+table above. Each app keeps its own settings and can be added to the iPad Home Screen
+separately.
+
 ## Word Guess
 
 Guess the hidden word. After each guess, every letter shows whether it is in the
@@ -31,7 +47,7 @@ right spot, somewhere else in the word, or not in the word at all.
   on white), two size settings, and the
   [Atkinson Hyperlegible](https://brailleinstitute.org/freefont) font, designed by
   the Braille Institute for low-vision readers.
-- **Large keys** in A-B-C order (or QWERTY), the same place every time.
+- **Large keys** in QWERTY order (or A-B-C), the same place every time.
 - **No timers, gentle mistakes.** Made-up words don't use up a guess; you can turn
   off the real-word check or the guess limit entirely.
 - **Works offline** once loaded, and remembers the game in progress, settings and

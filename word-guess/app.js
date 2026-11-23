@@ -33,7 +33,7 @@
     maxGuesses: 6,
     theme: "yellow",
     size: "large",
-    layout: "abc",
+    layout: "qwerty",
     speakKeys: true,
     examples: true,
     autoSpeak: true,
@@ -412,7 +412,7 @@
 
   function renderKeyboard(k) {
     const kb = $("keyboard");
-    const rows = LAYOUTS[settings.layout] || LAYOUTS.abc;
+    const rows = LAYOUTS[settings.layout] || LAYOUTS.qwerty;
     const make = (label, cls, onTap, aria) => {
       const b = document.createElement("button");
       b.type = "button";
