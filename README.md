@@ -7,6 +7,7 @@ no server or account.
 | App | What it is |
 |---|---|
 | [Word Guess](word-guess/) | Guess a hidden 4- or 5-letter word. Giant letters, spoken clues. |
+| [Word Flower](word-flower/) | Make as many words as you can from seven big letters. Spoken hints. |
 
 ## Layout
 
@@ -53,11 +54,44 @@ right spot, somewhere else in the word, or not in the word at all.
 - **Works offline** once loaded, and remembers the game in progress, settings and
   win streak on the device.
 
+## Word Flower
+
+Seven letters are arranged as a flower: one in the middle and six around it. Make
+words of 4 or more letters; every word must use the middle letter, and letters can
+be reused. Four-letter words score 1 point, longer words 1 point per letter, and a
+word that uses all seven letters scores 7 extra. Each puzzle has 20 to 45 familiar
+answer words; any other real word is accepted as a "bonus word".
+
+Low-vision design (same themes, sizes, font and speech settings as Word Guess):
+
+- **Seven giant round letter buttons in fixed places.** The middle letter is solid
+  (inverted colors) with a ring, so it stands out without relying on color. The six
+  outer letters start in A-B-C order clockwise from the top; **Shuffle** rearranges
+  them and reads out the new order.
+- **The word being built is shown huge** and shrinks only as much as needed to fit.
+- **Spoken feedback** for every letter tapped, every word checked ("Yes! bold, 1
+  point"), and gentle reasons when a word isn't accepted ("Every word must use the
+  middle letter, B").
+- **Tap the score** to hear your rank, points and how many words are found.
+- **Hints**: hear the letters, get a clue ("a 6-letter word starting with BO"), have
+  the clue's word told to you, and see how many words are left for each first
+  letter.
+- **My words** lists found words in large type, reads them aloud, and can show the
+  words not yet found.
+- Puzzles never use S, so there are no easy plurals. There are about 3,500 puzzles,
+  played in order without repeats.
+
+The word lists are built by `tools/build_flower.py` from SCOWL (common words, no
+names) filtered by everyday frequency, with `tools/flower_blocklist.txt` removing
+rude words.
+
 ### Setting it up on an iPad
+
+These steps apply to every game; each one gets its own Home Screen icon.
 
 1. Open the game's web address in **Safari**.
 2. Tap the **Share** button (square with an up arrow), then **Add to Home Screen**.
-3. Open it from the new **Word Guess** icon. It runs full-screen like a regular app,
+3. Open it from the new icon. It runs full-screen like a regular app,
    works without internet, and its saved progress is protected from Safari's
    automatic cleanup of website data.
 

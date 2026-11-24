@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#000"/>
+  <circle cx="256.0" cy="106.0" r="74" fill="#1d1d1d" stroke="#ffe600" stroke-width="10"/>
+  <circle cx="385.9" cy="181.0" r="74" fill="#1d1d1d" stroke="#ffe600" stroke-width="10"/>
+  <circle cx="385.9" cy="331.0" r="74" fill="#1d1d1d" stroke="#ffe600" stroke-width="10"/>
+  <circle cx="256.0" cy="406.0" r="74" fill="#1d1d1d" stroke="#ffe600" stroke-width="10"/>
+  <circle cx="126.1" cy="331.0" r="74" fill="#1d1d1d" stroke="#ffe600" stroke-width="10"/>
+  <circle cx="126.1" cy="181.0" r="74" fill="#1d1d1d" stroke="#ffe600" stroke-width="10"/>
+  <circle cx="256" cy="256" r="84" fill="#ffe600"/>
+  <text x="256" y="314" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="160" fill="#000">W</text>
+</svg>

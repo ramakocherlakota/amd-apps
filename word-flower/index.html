@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en" data-theme="yellow" data-size="large">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Word Flower</title>
+  <meta name="description" content="Make words from seven big letters, with spoken help, for low vision.">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="Word Flower">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon-180.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <button id="btn-hints" class="bar-btn" type="button">
+      <span class="bar-icon" aria-hidden="true">💡</span><span>Hints</span>
+    </button>
+    <button id="btn-words" class="bar-btn" type="button">
+      <span class="bar-icon" aria-hidden="true">☰</span><span>My words</span>
+    </button>
+    <button id="btn-menu" class="bar-btn" type="button">
+      <span class="bar-icon" aria-hidden="true">⚙</span><span>Menu</span>
+    </button>
+  </header>
+
+  <main class="game">
+    <button id="score" class="score" type="button">
+      <span id="score-text" class="score-text"></span>
+      <span class="bar"><span id="bar-fill" class="bar-fill"></span></span>
+    </button>
+    <button id="word" class="word" type="button" aria-label="Your word"></button>
+    <p id="message" class="message" aria-live="polite"></p>
+    <div id="flower" class="flower" role="group" aria-label="Letters"></div>
+    <div class="actions">
+      <button id="btn-delete" class="act" type="button">⌫ Delete</button>
+      <button id="btn-shuffle" class="act" type="button">⟳ Shuffle</button>
+      <button id="btn-check" class="act primary" type="button">Check ✓</button>
+    </div>
+  </main>
+
+  <!-- Full-screen panels -->
+  <div id="panel-hints" class="panel" hidden>
+    <div class="panel-body">
+      <div class="panel-head">
+        <h2>Hints</h2>
+        <button class="big-btn close" data-close type="button">Close</button>
+      </div>
+      <button id="btn-hear-letters" class="big-btn wide" type="button">🔊 Hear my letters</button>
+      <button id="btn-clue" class="big-btn primary wide" type="button">Give me a clue</button>
+      <p id="clue-text" class="clue-text" hidden></p>
+      <button id="btn-reveal" class="big-btn wide" type="button" hidden>Tell me that word</button>
+      <h3>Words still to find</h3>
+      <p id="left-summary" class="note"></p>
+      <div id="left-table" class="left-table"></div>
+    </div>
+  </div>
+
+  <div id="panel-words" class="panel" hidden>
+    <div class="panel-body">
+      <div class="panel-head">
+        <h2 id="words-title">My words</h2>
+        <button class="big-btn close" data-close type="button">Close</button>
+      </div>
+      <button id="btn-hear-words" class="big-btn wide" type="button">🔊 Read my words</button>
+      <div id="found-list" class="word-list"></div>
+      <p class="note">Words marked + are bonus words: real but less common, so they aren't counted in the total.</p>
+      <button id="btn-missed" class="big-btn wide" type="button">Show the words I haven't found</button>
+      <h3 id="missed-title" hidden>Words you haven't found</h3>
+      <div id="missed-list" class="word-list missed" hidden></div>
+    </div>
+  </div>
+
+  <div id="panel-menu" class="panel" hidden>
+    <div class="panel-body">
+      <div class="panel-head">
+        <h2>Menu</h2>
+        <button class="big-btn close" data-close type="button">Close</button>
+      </div>
+
+      <button id="btn-new" class="big-btn primary wide" type="button">Start a new puzzle</button>
+      <button id="btn-help" class="big-btn wide" type="button">🔊 How to play</button>
+
+      <div class="setting">
+        <h3>Colors</h3>
+        <div class="choices" data-setting="theme">
+          <button type="button" data-value="yellow">Yellow on black</button>
+          <button type="button" data-value="white">White on black</button>
+          <button type="button" data-value="light">Black on white</button>
+        </div>
+      </div>
+
+      <div class="setting">
+        <h3>Letter size</h3>
+        <div class="choices" data-setting="size">
+          <button type="button" data-value="large">Large</button>
+          <button type="button" data-value="huge">Huge</button>
+        </div>
+      </div>
+
+      <div class="setting">
+        <h3>Speech</h3>
+        <div class="choices" data-setting="speakKeys">
+          <button type="button" data-value="true">Say each letter I tap</button>
+          <button type="button" data-value="false">Stay quiet when I tap</button>
+        </div>
+        <div class="choices" data-setting="examples">
+          <button type="button" data-value="true">“B as in ball”</button>
+          <button type="button" data-value="false">Just “B”</button>
+        </div>
+        <div class="choices" data-setting="autoSpeak">
+          <button type="button" data-value="true">Read results aloud</button>
+          <button type="button" data-value="false">Only when I ask</button>
+        </div>
+      </div>
+
+      <div class="setting">
+        <h3>Speaking speed</h3>
+        <div class="choices" data-setting="rate">
+          <button type="button" data-value="0.7">Slow</button>
+          <button type="button" data-value="0.85">Medium</button>
+          <button type="button" data-value="1">Normal</button>
+        </div>
+      </div>
+
+      <div class="setting">
+        <h3>Voice</h3>
+        <select id="voice-select" class="voice-select"></select>
+        <button id="btn-test-voice" class="big-btn" type="button">🔊 Test voice</button>
+        <p class="note">For a clearer voice on iPad: Settings → Accessibility → Spoken Content → Voices, and download an “Enhanced” English voice.</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="panel-confirm" class="panel" hidden>
+    <div class="panel-body center">
+      <p class="big-title">Leave this puzzle and start a new one?</p>
+      <p class="note">Your words for this puzzle will be cleared.</p>
+      <button id="btn-confirm-yes" class="big-btn primary" type="button">Yes, new puzzle</button>
+      <button class="big-btn" data-close type="button">No, keep playing</button>
+    </div>
+  </div>
+
+  <script src="words.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
