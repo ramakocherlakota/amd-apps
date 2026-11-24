@@ -47,7 +47,24 @@
       <p id="end-stats" class="end-stats"></p>
       <button id="btn-end-new" class="big-btn primary" type="button">New word</button>
       <button id="btn-end-hear" class="big-btn" type="button">🔊 Hear it again</button>
+      <button id="btn-end-luck" class="big-btn" type="button" hidden>🍀 How lucky was I?</button>
       <button id="btn-end-menu" class="big-btn" type="button">⚙ Menu</button>
+    </div>
+  </div>
+
+  <div id="panel-luck" class="panel" hidden>
+    <div class="panel-body">
+      <div class="panel-head">
+        <h2>How lucky was I?</h2>
+        <button id="btn-luck-close" class="big-btn close" type="button">Close</button>
+      </div>
+      <p id="luck-status" class="luck-status" aria-live="polite"></p>
+      <button id="btn-luck-retry" class="big-btn wide" type="button" hidden>Try again</button>
+      <button id="btn-luck-hear" class="big-btn wide" type="button" hidden>🔊 Read it to me</button>
+      <div id="luck-list" class="luck-list"></div>
+      <p id="luck-note" class="note" hidden>Luck compares what each guess actually left with what that same
+        guess leaves on average, counting every word Wordle could pick. Ratings come from the
+        Wordle Luck service; the luck score is the same number Wordle Luck shows.</p>
     </div>
   </div>
 
@@ -161,7 +178,7 @@
       </div>
 
       <p id="menu-stats" class="note stats-line"></p>
-      <p class="note version">Version 2026-11-24e</p>
+      <p class="note version">Version 2026-11-24f</p>
     </div>
   </div>
 

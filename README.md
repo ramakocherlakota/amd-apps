@@ -130,6 +130,23 @@ deck order.
 feeding the opponent was tried and played no better than Medium over thousands of hands,
 so it was left out; a genuinely stronger player would need to look ahead.
 
+### How lucky was I?
+
+After a five-letter game, **How lucky was I?** rates each guess with the same service
+as [Wordle Luck](https://github.com/ramakocherlakota/wordle-luck): for each guess it
+shows how many possible words were left, how many that guess leaves on average, a
+plain verdict (Lucky / About average / Unlucky, at ±0.5 bits) and the same luck score
+Wordle Luck shows. It's read aloud too. Results are saved with the game.
+
+To make every game ratable, Word Guess's five-letter answers are limited to Wordle
+Luck's plausible-answer list and its allowed guesses are exactly Wordle's guess list
+(copies in `tools/wordle-lists/`). The button is hidden for four-letter games and when
+"accept anything" let in a word Wordle doesn't accept.
+
+The page calls `https://luck.ramakocherlakota.net/service` from
+`ramakocherlakota.github.io`, so that endpoint must send CORS headers allowing this
+origin.
+
 ### Setting it up on an iPad
 
 These steps apply to every game; each one gets its own Home Screen icon.

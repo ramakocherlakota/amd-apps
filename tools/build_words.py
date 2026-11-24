@@ -5,6 +5,12 @@ Answers are common, familiar words: frequent in everyday English (per the
 in tools/blocklist.txt (names, places, slang, rude or grim words).
 Allowed guesses are every dictionary word of that length.
 
+Five-letter games are kept in step with the Wordle Luck service
+(ramakocherlakota/wordle-luck), so any game can be rated for luck: answers must
+also be on its plausible-answer list, and the allowed guesses are exactly Wordle's
+own guess list. Both lists are copied into tools/wordle-lists/; refresh them from
+wordle-luck's src/data/plausible-answers.ts and guesses-v2.ts when it changes.
+
 Setup:
     pip install wordfreq
     npm install word-list@2        # provides node_modules/word-list/words.txt
@@ -25,8 +31,16 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 
 
+def wordle_list(name):
+    path = os.path.join(HERE, "wordle-lists", name)
+    lines = (line.strip() for line in open(path))
+    return {w for w in lines if w and not w.startswith("#")}
+
+
 def main(dict_path):
     words = set(open(dict_path).read().split())
+    plausible = wordle_list("plausible-answers.txt")
+    nyt_guesses = wordle_list("nyt-guesses.txt")
     block = set(open(os.path.join(HERE, "blocklist.txt")).read().split())
     top = top_n_list("en", 60000)
 
@@ -44,6 +58,9 @@ def main(dict_path):
             if w.endswith("ed") and (w[:-2] in words or w[:-1] in words):
                 continue  # simple past tense
             answers.append(w)
+        if length == 5:
+            answers = [w for w in answers if w in plausible]
+            allowed = sorted(nyt_guesses)
         out[length] = (sorted(answers), allowed)
         print(f"{length} letters: {len(answers)} answers, {len(allowed)} allowed guesses")
 

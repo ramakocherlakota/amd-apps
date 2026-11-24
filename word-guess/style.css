@@ -418,3 +418,35 @@ button { cursor: pointer; }
 .mini.correct { background: var(--correct); color: var(--on-correct); }
 .mini.present { background: var(--present); color: var(--on-present); border-radius: 50%; }
 .mini.absent { border: 3px dashed var(--soft-line); color: var(--dim); }
+
+/* ---------- How lucky was I? ---------- */
+.luck-status {
+  margin: 0;
+  font-size: clamp(28px, 4.2vw, 46px);
+  line-height: 1.25;
+  text-align: center;
+}
+.luck-list { display: flex; flex-direction: column; gap: 22px; }
+.luck-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 12px 18px;
+  border: 3px solid var(--soft-line);
+  border-radius: 18px;
+  background: none;
+  width: 100%;
+}
+.luck-row .row { --tile: min(96px, calc((100vw - 80px - (var(--n) - 1) * 12px) / var(--n))); }
+.luck-verdict { margin: 0; font-size: clamp(30px, 4.6vw, 50px); }
+.luck-verdict.lucky { color: var(--correct); }
+.luck-verdict.unlucky { color: var(--present); }
+.luck-detail {
+  margin: 0;
+  font-weight: 400;
+  font-size: clamp(22px, 3vw, 32px);
+  line-height: 1.35;
+  text-align: center;
+}
+.luck-row.total { border: 4px solid var(--line); }

@@ -497,6 +497,7 @@
     if (game.won) renderResultRow(row, game.answer, false);
     else row.replaceChildren(...game.answer.split("").map((l) => makeTile(l, "filled", { say: letterSay(l) })));
     $("end-stats").textContent = statsText();
+    $("btn-end-luck").hidden = !luckEligible();
     openPanel("panel-end");
   }
 
@@ -518,6 +519,150 @@
       speak("Your guesses: " + game.guesses.join(", ") + ". Tap a letter to hear about it.");
     }
     openPanel("panel-history");
+  }
+
+  // ---------- How lucky was I? (the Wordle Luck service) ----------
+  /* Rates each guess with the same service and word lists as Wordle Luck
+     (ramakocherlakota/wordle-luck). Luck, in bits, is how much more (or less) a
+     guess narrowed things down than that same guess does on average. Only
+     five-letter games whose guesses are all on Wordle's guess list can be rated;
+     tools/build_words.py keeps Word Guess's five-letter lists in step with it. */
+  const LUCK_URL = "https://luck.ramakocherlakota.net/service";
+  const LUCK_TIMEOUT_MS = 90000;
+  let luckRequest = 0;
+
+  function luckEligible() {
+    return !!game.over && game.answer.length === 5 && game.guesses.length > 0 &&
+      game.guesses.every((g) => LISTS["5"].allowed.has(g));
+  }
+
+  async function fetchLuck() {
+    const body = {
+      operation: "rate_solution", targets: [game.answer], guesses: game.guesses,
+      count: 1, sequence: false, hard_mode: false, sqlite_dbname: "plausible-wordle.sqlite",
+    };
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), LUCK_TIMEOUT_MS);
+    try {
+      const res = await fetch(LUCK_URL, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body), signal: ctl.signal,
+      });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      const rows = data.by_target && data.by_target[game.answer];
+      if (!rows || !rows.length) throw new Error("no results");
+      const bad = rows.find((r) => r.error);
+      if (bad) throw new Error(bad.error);
+      return rows.map((r) => ({
+        guess: r.guess, luck: r.luck, before: r.remaining_answers_prior,
+        after: r.remaining_answers_post, expBits: r.exp_uncertainty_post,
+      }));
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  const words = (n) => `${n} possible word${n === 1 ? "" : "s"}`;
+  function luckVerdict(luck) {
+    if (luck >= 0.5) return { text: "Lucky", cls: "lucky" };
+    if (luck <= -0.5) return { text: "Unlucky", cls: "unlucky" };
+    return { text: "About average", cls: "" };
+  }
+  function fmtLuck(luck) {
+    const r = Math.round(luck * 100) / 100;
+    return r === 0 ? "0.00" : (r > 0 ? "+" : "") + r.toFixed(2);
+  }
+  function luckRowText(r) {
+    if (r.guess === game.answer) {
+      if (r.before <= 1) return { verdict: { text: "No luck needed", cls: "" }, detail: "It was the only word left." };
+      return { verdict: luckVerdict(r.luck), detail: `Got it! With ${words(r.before)} left, that was a 1 in ${r.before} chance.` };
+    }
+    const avg = Math.max(1, Math.round(Math.pow(2, r.expBits)));
+    return {
+      verdict: luckVerdict(r.luck),
+      detail: `Left ${words(r.after)}. On average, this guess leaves about ${avg}.`,
+    };
+  }
+
+  function showLuck() {
+    openPanel("panel-luck");
+    const saved = game.luck;
+    if (saved && saved.answer === game.answer && saved.n === game.guesses.length) renderLuck(saved.rows, true);
+    else loadLuck();
+  }
+
+  async function loadLuck() {
+    const id = ++luckRequest;
+    const answer = game.answer;
+    $("luck-list").replaceChildren();
+    $("luck-note").hidden = true;
+    $("btn-luck-hear").hidden = true;
+    $("btn-luck-retry").hidden = true;
+    $("luck-status").textContent = "Working it out… This can take up to a minute.";
+    speak("Working out how lucky you were. This can take up to a minute.");
+    try {
+      const rows = await fetchLuck();
+      if (id !== luckRequest || game.answer !== answer) return;
+      game.luck = { answer, n: game.guesses.length, rows };
+      save("game", game);
+      renderLuck(rows, true);
+    } catch (e) {
+      if (id !== luckRequest) return;
+      $("luck-status").textContent = "I couldn't get the luck rating. Check the internet connection and try again.";
+      $("btn-luck-retry").hidden = false;
+      speak("Sorry, I couldn't get the luck rating. Check the internet connection, then tap Try again.");
+    }
+  }
+
+  function luckSpeech(rows) {
+    const total = rows.reduce((t, r) => t + r.luck, 0);
+    const parts = rows.map((r, i) => {
+      const t = luckRowText(r);
+      return `Guess ${i + 1}, ${r.guess}. | ${t.verdict.text}. | ${t.detail}`;
+    });
+    parts.push(`Overall: ${luckVerdict(total).text}.`);
+    return parts.join(" | ");
+  }
+
+  function renderLuck(rows, announce) {
+    const total = rows.reduce((t, r) => t + r.luck, 0);
+    const overall = luckVerdict(total);
+    $("luck-status").textContent = `Overall: ${overall.text}`;
+    const els = rows.map((r, i) => {
+      const t = luckRowText(r);
+      const div = document.createElement("div");
+      div.className = "luck-row";
+      const tiles = document.createElement("div");
+      tiles.className = "row";
+      renderResultRow(tiles, r.guess, false);
+      const v = document.createElement("p");
+      v.className = "luck-verdict " + t.verdict.cls;
+      v.textContent = `Guess ${i + 1}: ${t.verdict.text}`;
+      const d = document.createElement("p");
+      d.className = "luck-detail";
+      d.textContent = `${t.detail} Luck score ${fmtLuck(r.luck)}.`;
+      div.append(tiles, v, d);
+      div.addEventListener("click", (e) => {
+        if (e.target.closest(".tile")) return;
+        speak(`Guess ${i + 1}, ${r.guess}. | ${t.verdict.text}. | ${t.detail}`);
+      });
+      return div;
+    });
+    const sum = document.createElement("div");
+    sum.className = "luck-row total";
+    const sv = document.createElement("p");
+    sv.className = "luck-verdict " + overall.cls;
+    sv.textContent = `Overall: ${overall.text}`;
+    const sd = document.createElement("p");
+    sd.className = "luck-detail";
+    sd.textContent = `Total luck score ${fmtLuck(total)}.`;
+    sum.append(sv, sd);
+    $("luck-list").replaceChildren(...els, sum);
+    $("luck-note").hidden = false;
+    $("btn-luck-hear").hidden = false;
+    if (announce) speak(luckSpeech(rows));
   }
 
   // ---------- Settings ----------
@@ -589,6 +734,10 @@
     });
     $("btn-end-new").addEventListener("click", () => { newGame(); speak("New word. " + turnText()); });
     $("btn-end-menu").addEventListener("click", () => { applySettings(); openPanel("panel-menu"); });
+    $("btn-end-luck").addEventListener("click", showLuck);
+    $("btn-luck-close").addEventListener("click", showEnd);
+    $("btn-luck-retry").addEventListener("click", loadLuck);
+    $("btn-luck-hear").addEventListener("click", () => { if (game.luck) speak(luckSpeech(game.luck.rows)); });
     $("btn-end-hear").addEventListener("click", () => speak(endSpeech()));
     for (const b of document.querySelectorAll("[data-close]")) {
       b.addEventListener("click", () => { closePanels(); if (game.over) showEnd(); });
