@@ -784,8 +784,10 @@
       if ((game.phase === "draw" && !game.mustDraw) || (game.phase === "upcard" && game.upTurn === "you")) takeFromDiscard();
       else speak(game.discard.length ? `The top of the discard pile is the ${name(top())}.` : "The discard pile is empty.");
     });
-    $("message").addEventListener("click", () => speak(game.msg.replace(/[♠♥♦♣]︎?/g, (m) =>
-      " of " + G.SUITS[G.SUIT_SYMBOLS.indexOf(m[0])])));
+    // Read short card labels like "J♠" as "Jack of spades" (a lone capital letter
+    // would be read as "capital J").
+    $("message").addEventListener("click", () => speak(game.msg.replace(/(10|[2-9AJQK])([♠♥♦♣])\uFE0E?/g,
+      (m, r, su) => name(G.SUIT_SYMBOLS.indexOf(su) * 13 + G.RANK_LABELS.indexOf(r)))));
     $("hand-label").addEventListener("click", () => speak(handSpeech()));
     $("btn-score").addEventListener("click", () => speak(scoreSpeech()));
     $("btn-hint").addEventListener("click", hint);

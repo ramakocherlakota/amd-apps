@@ -110,9 +110,17 @@
     o: "orange", p: "pig", q: "queen", r: "rose", s: "sun", t: "tea",
     u: "umbrella", v: "violin", w: "window", x: "x-ray", y: "yellow", z: "zebra",
   };
-  // Some voices read a lone "A" as the word "a" ("uh"), so spell it out.
+  // Letters are spoken as words ("tee", not "T"): iPad voices read a lone capital
+  // letter as "capital T".
+  const LETTER_SOUNDS = {
+    a: "ay", b: "bee", c: "see", d: "dee", e: "ee", f: "eff", g: "gee", h: "aitch",
+    i: "eye", j: "jay", k: "kay", l: "el", m: "em", n: "en", o: "oh", p: "pee",
+    q: "cue", r: "ar", s: "ess", t: "tee", u: "you", v: "vee", w: "double-you",
+    x: "ex", y: "why", z: "zee",
+  };
+  const letterName = (l) => LETTER_SOUNDS[l] || l;
   function letterSay(l) {
-    const name = l === "a" ? "ay" : l.toUpperCase();
+    const name = letterName(l);
     return settings.examples ? `${name}, as in ${EXAMPLES[l]}` : name;
   }
   function letterList(letters) {
@@ -120,7 +128,7 @@
     return letters.slice(0, -1).map(letterSay).join("; ") + "; and " + letterSay(letters[letters.length - 1]);
   }
   function spell(word) {
-    return word.split("").map((l) => (l === "a" ? "ay" : l.toUpperCase())).join(", ");
+    return word.split("").map(letterName).join(", ");
   }
   const ORDINALS = ["first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth"];
   function spots(set) {
@@ -215,7 +223,7 @@
     save("game", game);
     setStatus(turnText());
     render();
-    if (settings.speakKeys) speak(`Deleted ${gone === "a" ? "ay" : gone.toUpperCase()}`);
+    if (settings.speakKeys) speak(`Deleted ${letterName(gone)}`);
   }
 
   function submit() {
@@ -275,7 +283,7 @@
       parts.push("Right spot: " + right.map((i) => `${letterSay(word[i])}, ${ORDINALS[i]} letter`).join("; ") + ".");
     }
     if (wrongSpot.length) parts.push("In the word, but in a different spot: " + letterList(wrongSpot) + ".");
-    if (none.length) parts.push("Not in the word: " + [...new Set(none)].map((l) => (l === "a" ? "ay" : l.toUpperCase())).join(", ") + ".");
+    if (none.length) parts.push("Not in the word: " + [...new Set(none)].map(letterName).join(", ") + ".");
     if (!right.length && !wrongSpot.length) parts.push("None of those letters are in the word. That's still useful!");
     if (game.maxGuesses) {
       const left = guessesLeft();
@@ -308,7 +316,7 @@
     }
     if (!parts.length) parts.push("No letters found yet.");
     if (k.absent.size) {
-      parts.push("Not in the word: " + [...k.absent].sort().map((l) => (l === "a" ? "ay" : l.toUpperCase())).join(", ") + ".");
+      parts.push("Not in the word: " + [...k.absent].sort().map(letterName).join(", ") + ".");
     }
     if (game.maxGuesses) {
       const left = guessesLeft();

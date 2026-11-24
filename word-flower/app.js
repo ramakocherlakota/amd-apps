@@ -90,7 +90,15 @@
     o: "orange", p: "pig", q: "queen", r: "rose", s: "sun", t: "tea",
     u: "umbrella", v: "violin", w: "window", x: "x-ray", y: "yellow", z: "zebra",
   };
-  function name(l) { return l === "a" ? "ay" : l.toUpperCase(); }
+  // Letters are spoken as words ("tee", not "T"): iPad voices read a lone capital
+  // letter as "capital T".
+  const LETTER_SOUNDS = {
+    a: "ay", b: "bee", c: "see", d: "dee", e: "ee", f: "eff", g: "gee", h: "aitch",
+    i: "eye", j: "jay", k: "kay", l: "el", m: "em", n: "en", o: "oh", p: "pee",
+    q: "cue", r: "ar", s: "ess", t: "tee", u: "you", v: "vee", w: "double-you",
+    x: "ex", y: "why", z: "zee",
+  };
+  function name(l) { return LETTER_SOUNDS[l] || l; }
   function letterSay(l) { return settings.examples ? `${name(l)}, as in ${EXAMPLES[l]}` : name(l); }
   function spell(word) { return word.split("").map(name).join(", "); }
   function listSay(items) {
