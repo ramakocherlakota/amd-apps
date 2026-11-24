@@ -113,7 +113,7 @@
   // Letters are spoken as words ("tee", not "T"): iPad voices read a lone capital
   // letter as "capital T".
   const LETTER_SOUNDS = {
-    a: "ay", b: "bee", c: "see", d: "dee", e: "ee", f: "eff", g: "gee", h: "aitch",
+    a: "eigh", b: "bee", c: "see", d: "dee", e: "ee", f: "eff", g: "gee", h: "aitch",
     i: "eye", j: "jay", k: "kay", l: "el", m: "em", n: "en", o: "oh", p: "pee",
     q: "cue", r: "ar", s: "ess", t: "tee", u: "you", v: "vee", w: "double-you",
     x: "ex", y: "why", z: "zee",
@@ -585,7 +585,8 @@
       save("settings", settings);
       speak("Hello! This is how I sound.");
     });
-    $("btn-test-voice").addEventListener("click", () => speak("Hello! This is how I sound. The word was " + spell("crane") + "."));
+    $("btn-test-voice").addEventListener("click", () => speak("Hello! This is how I sound. Here are the letters: " +
+      Object.values(LETTER_SOUNDS).join(", ") + "."));
 
     let wasTall = window.innerHeight > window.innerWidth;
     window.addEventListener("resize", () => {
