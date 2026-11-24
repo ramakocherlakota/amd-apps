@@ -88,12 +88,15 @@
 
       <div class="setting">
         <h3>Arrange my hand</h3>
-        <div class="choices" data-setting="order">
-          <button type="button" data-value="melds">Melds first</button>
+        <button id="chk-melds" class="check-btn" type="button" role="checkbox" aria-checked="true">
+          <span class="box" aria-hidden="true"></span><span>Put my melds first</span>
+        </button>
+        <p class="note">Runs and sets go first, each in a box, and the loose cards follow in a dashed box.</p>
+        <h3 id="sort-heading" class="sub-heading">Sort my loose cards</h3>
+        <div class="choices" data-setting="sortBy">
           <button type="button" data-value="suit">By suit</button>
           <button type="button" data-value="rank">By number</button>
         </div>
-        <p class="note">“Melds first” groups your runs and sets in boxes, with loose cards in a dashed box.</p>
       </div>
 
       <div class="setting">
@@ -142,7 +145,7 @@
       </div>
 
       <p id="menu-stats" class="note"></p>
-      <p class="note version">Version 2026-11-24i</p>
+      <p class="note version">Version 2026-11-24j</p>
     </div>
   </div>
 

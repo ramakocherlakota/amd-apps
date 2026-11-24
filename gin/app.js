@@ -22,7 +22,8 @@
 
   const DEFAULT_SETTINGS = {
     level: "medium",
-    order: "melds",
+    meldsFirst: true,
+    sortBy: "suit",
     theme: "yellow",
     size: "large",
     speakCards: true,
@@ -31,6 +32,13 @@
     voice: "",
   };
   const settings = Object.assign({}, DEFAULT_SETTINGS, load("settings", {}));
+  // Older versions had one "order" setting: melds / suit / rank.
+  if (settings.order) {
+    settings.meldsFirst = settings.order === "melds";
+    settings.sortBy = settings.order === "rank" ? "rank" : "suit";
+    delete settings.order;
+    save("settings", settings);
+  }
   const stats = Object.assign({ games: 0, won: 0 }, load("stats", {}));
   let game = load("game", null);
   let selected = null;     // card chosen for discarding (not saved)
@@ -585,15 +593,19 @@
     return b;
   }
 
+  // With "melds first", runs and sets come first in boxes and the loose cards follow,
+  // sorted by suit or by number. Without it, the whole hand is sorted that way.
   function groupsFor(hand) {
-    if (settings.order === "rank") return [{ cls: "plain", cards: hand.slice().sort(G.byRank) }];
-    if (settings.order === "suit") {
+    const bySuit = settings.sortBy !== "rank";
+    if (!settings.meldsFirst) {
+      if (!bySuit) return [{ cls: "plain", cards: hand.slice().sort(G.byRank) }];
       return [0, 1, 2, 3].map((s) => ({ cls: "plain", cards: hand.filter((c) => G.suit(c) === s).sort(G.byRank) }))
         .filter((g) => g.cards.length);
     }
     const b = G.best(hand);
     const melds = b.melds.map((m) => ({ cls: "meld", cards: m.slice().sort(G.isSet(m) ? G.bySuit : G.byRank) }));
-    return melds.concat(b.deadwood.length ? [{ cls: "loose", cards: b.deadwood.slice().sort(G.bySuit) }] : []);
+    const loose = b.deadwood.slice().sort(bySuit ? G.bySuit : G.byRank);
+    return melds.concat(loose.length ? [{ cls: "loose", cards: loose }] : []);
   }
 
   function render() {
@@ -817,6 +829,9 @@
 
   // ---------- Settings ----------
   function applySettings() {
+    const chk = $("chk-melds");
+    chk.setAttribute("aria-checked", String(!!settings.meldsFirst));
+    $("sort-heading").textContent = settings.meldsFirst ? "Sort my loose cards" : "Sort my cards";
     const root = document.documentElement;
     root.dataset.theme = settings.theme;
     root.dataset.size = settings.size;
@@ -895,6 +910,15 @@
     $("btn-result-hear").addEventListener("click", () => speak(resultText().say));
     for (const b of document.querySelectorAll("[data-close]")) b.addEventListener("click", () => { stopSpeech(); closePanels(); });
     for (const g of document.querySelectorAll(".choices[data-setting]")) g.addEventListener("click", onChoice);
+    $("chk-melds").addEventListener("click", () => {
+      settings.meldsFirst = !settings.meldsFirst;
+      save("settings", settings);
+      applySettings();
+      render();
+      speak(settings.meldsFirst
+        ? "Melds first is on. Your runs and sets come first, and the loose cards follow."
+        : "Melds first is off. Your whole hand is sorted together.");
+    });
     $("voice-select").addEventListener("change", (e) => {
       settings.voice = e.target.value;
       save("settings", settings);

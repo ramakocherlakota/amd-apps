@@ -458,3 +458,32 @@ button { cursor: pointer; }
   font-size: clamp(26px, 3.6vw, 38px);
   line-height: 1.4;
 }
+
+/* ---------- Checkbox setting ---------- */
+.check-btn {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+  min-height: 84px;
+  padding: 10px 20px;
+  font-size: clamp(24px, 3.2vw, 34px);
+  text-align: left;
+  background: var(--key-bg);
+  border: 4px solid var(--soft-line);
+  border-radius: 16px;
+}
+.check-btn .box {
+  flex: none;
+  width: 1.5em;
+  height: 1.5em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 5px solid var(--fg);
+  border-radius: 10px;
+  font-size: 1em;
+}
+.check-btn[aria-checked="true"] .box { background: var(--fg); color: var(--bg); }
+.check-btn[aria-checked="true"] .box::after { content: "✓"; font-weight: 700; }
+.sub-heading { margin-top: 8px !important; }

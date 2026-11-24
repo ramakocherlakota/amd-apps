@@ -100,8 +100,10 @@ Low-vision design (same themes, sizes, font and speech settings as the word game
   picture-card art, never overlapping.
 - **Four suit colors** (spades white/black, hearts red, diamonds orange, clubs green), so
   hearts and diamonds never look alike.
-- **The hand arranges itself**: runs and sets in solid boxes, loose cards in a dashed box,
-  with the deadwood total always shown. Or sort by suit or by number.
+- **The hand arranges itself**: with "Put my melds first" checked (the default), runs and
+  sets come first in solid boxes and the loose cards follow in a dashed box, sorted by
+  suit or by number; unchecked, the whole hand is sorted that way. The deadwood total is
+  always shown.
 - **Spoken table talk**: every computer move is read out ("I took your 8 of hearts. I
   threw away the jack of clubs."), and every card you tap is named along with its role.
 - **Two taps to discard** (choose a card, then Discard / Knock / Gin), so a mis-tap
