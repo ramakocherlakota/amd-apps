@@ -140,10 +140,12 @@ These steps apply to every game; each one gets its own Home Screen icon.
    works without internet, and its saved progress is protected from Safari's
    automatic cleanup of website data.
 
-For a better voice: **Settings → Accessibility → Spoken Content → Voices → English**
-and download an "Enhanced" or "Premium" voice. The game picks it automatically, or
-choose one in the game's **Menu → Voice**. Also check that the iPad's side switch or
-Control Center isn't in silent mode if no speech is heard.
+Voices: the games can only use the voices Safari offers to websites, which they list
+under **Menu → Voice**. Downloaded "Enhanced" or "Premium" voices (**Settings →
+Accessibility → Read & Speak → Voices → English**; called "Spoken Content" on older
+iPadOS) are often *not* offered to web pages, so they may not appear; if one does, the
+games pick it automatically. Restarting the iPad after downloading a voice sometimes
+helps. Also check that the iPad isn't in silent mode if no speech is heard.
 
 If she uses **VoiceOver**, the game's own speech will overlap with it; turn off
 "Say each letter I tap" and "Read results aloud" in the Menu and let VoiceOver read
