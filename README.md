@@ -8,6 +8,7 @@ no server or account.
 |---|---|
 | [Word Guess](word-guess/) | Guess a hidden 4- or 5-letter word. Giant letters, spoken clues. |
 | [Word Flower](word-flower/) | Make as many words as you can from seven big letters. Spoken hints. |
+| [Gin Rummy](gin/) | Standard gin rummy against the computer. Giant cards, spoken moves, hints. |
 
 ## Layout
 
@@ -84,6 +85,50 @@ Low-vision design (same themes, sizes, font and speech settings as Word Guess):
 The word lists are built by `tools/build_flower.py` from SCOWL (common words, no
 names) filtered by everyday frequency, with `tools/flower_blocklist.txt` removing
 rude words.
+
+## Gin Rummy
+
+Standard gin rummy against the computer: 10-card hands, knock with 10 or less, 25-point
+gin and undercut bonuses, first to 100, with game (100), per-hand (25) and shutout
+(double) bonuses. The first face-up card goes to the non-dealer, then the dealer; if both
+pass, the non-dealer draws. The deal alternates. A hand with two cards left in the deck
+and no knock doesn't count.
+
+Low-vision design (same themes, sizes, font and speech settings as the word games):
+
+- **Big, simple cards**: just a huge number and suit, no small corner marks or
+  picture-card art, never overlapping.
+- **Four suit colors** (spades white/black, hearts red, diamonds orange, clubs green), so
+  hearts and diamonds never look alike.
+- **The hand arranges itself**: runs and sets in solid boxes, loose cards in a dashed box,
+  with the deadwood total always shown. Or sort by suit or by number.
+- **Spoken table talk**: every computer move is read out ("I took your 8 of hearts. I
+  threw away the jack of clubs."), and every card you tap is named along with its role.
+- **Two taps to discard** (choose a card, then Discard / Knock / Gin), so a mis-tap
+  can't throw the wrong card. Knock and Gin buttons appear only when allowed.
+- **Hint** suggests whether to take the discard and which card to throw away, says why,
+  and selects the card for you.
+- **Played** lists the discard pile by suit and the cards the computer picked up, and can
+  read them aloud (optional memory help).
+- **Layoffs and scoring are done automatically**, with a results screen showing both
+  hands, laid-off cards and the running score.
+
+### The computer opponent
+
+`gin/engine.js` holds the rules and strategy. The computer only uses its own hand and
+public information (the discard pile and what you've picked up), never your cards or the
+deck order.
+
+- **Easy**: makes its melds but plays loosely: sometimes keeps the wrong card or passes
+  on a useful discard.
+- **Medium**: finds its best melds, keeps pairs and near-runs whose missing cards are
+  still live, takes a discard only when it completes or extends a meld (or gets it down
+  to knocking range), and knocks as soon as it can.
+
+`node gin/test/engine.test.js 2000` runs the rule tests and computer-vs-computer matches
+(Medium wins about two hands in three against Easy). A stronger level that avoided
+feeding the opponent was tried and played no better than Medium over thousands of hands,
+so it was left out; a genuinely stronger player would need to look ahead.
 
 ### Setting it up on an iPad
 
