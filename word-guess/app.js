@@ -113,7 +113,7 @@
   // Letters are spoken as words ("tee", not "T"): iPad voices read a lone capital
   // letter as "capital T".
   const LETTER_SOUNDS = {
-    a: "eigh", b: "bee", c: "see", d: "dee", e: "ee", f: "eff", g: "gee", h: "aitch",
+    a: "eigh", b: "bee", c: "see", d: "dee", e: "e", f: "eff", g: "gee", h: "aitch",
     i: "eye", j: "jay", k: "kay", l: "el", m: "em", n: "en", o: "oh", p: "pee",
     q: "cue", r: "ar", s: "ess", t: "tee", u: "you", v: "vee", w: "double-you",
     x: "ex", y: "why", z: "zee",
