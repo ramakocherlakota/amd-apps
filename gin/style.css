@@ -450,3 +450,11 @@ button { cursor: pointer; }
 .played-row.s2 .big-suit { color: var(--diamonds); }
 .played-row.s3 .big-suit { color: var(--clubs); }
 .mini-cards { display: flex; flex-wrap: wrap; gap: 10px; --card-w: 84px; }
+
+/* ---------- How to play ---------- */
+.help-text p {
+  margin: 0 0 14px;
+  font-weight: 400;
+  font-size: clamp(26px, 3.6vw, 38px);
+  line-height: 1.4;
+}

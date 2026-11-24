@@ -406,3 +406,11 @@ button { cursor: pointer; }
   .act { font-size: min(calc(var(--act-h) * 0.42), 3vw); }
   .act.primary { order: -1; flex-basis: 100%; }
 }
+
+/* ---------- How to play ---------- */
+.help-text p {
+  margin: 0 0 14px;
+  font-weight: 400;
+  font-size: clamp(26px, 3.6vw, 38px);
+  line-height: 1.4;
+}

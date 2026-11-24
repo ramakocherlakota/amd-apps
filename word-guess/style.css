@@ -450,3 +450,11 @@ button { cursor: pointer; }
   text-align: center;
 }
 .luck-row.total { border: 4px solid var(--line); }
+
+/* ---------- How to play ---------- */
+.help-text p {
+  margin: 0 0 14px;
+  font-weight: 400;
+  font-size: clamp(26px, 3.6vw, 38px);
+  line-height: 1.4;
+}

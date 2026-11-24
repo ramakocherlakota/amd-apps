@@ -157,6 +157,7 @@
   let currentUtterance = null;   // kept so the browser doesn't drop it before it ends
   function speak(text) {
     if (!synth || !text) return;
+    const wasBusy = synth.speaking || synth.pending;
     synth.cancel();
     const run = ++speechRun;
     const parts = String(text).replace(/([.!?])\s+/g, "$1|").split("|")
@@ -167,14 +168,29 @@
     let i = 0;
     const next = () => {
       if (run !== speechRun || i >= parts.length) return;
-      const u = new SpeechSynthesisUtterance(parts[i++]);
+      const text = parts[i++];
+      const u = new SpeechSynthesisUtterance(text);
       if (v) { u.voice = v; u.lang = v.lang; } else { u.lang = "en-US"; }
       u.rate = rate;
-      u.onend = () => { if (run === speechRun && i < parts.length) setTimeout(next, pause); };
+      // Move on when this piece ends. Safari sometimes never reports the end, so
+      // also move on after a generous estimate of how long the piece takes.
+      let moved = false;
+      const advance = () => {
+        if (moved) return;
+        moved = true;
+        clearTimeout(watchdog);
+        if (run === speechRun && i < parts.length) setTimeout(next, pause);
+      };
+      const watchdog = setTimeout(advance, 500 + (text.length * 75) / rate);
+      u.onend = advance;
+      u.onerror = (e) => { if (e.error !== "interrupted" && e.error !== "canceled") advance(); };
       currentUtterance = u;
       synth.speak(u);
     };
-    next();
+    // Safari can silently drop speech started right after cancelling speech that
+    // was still going, so give it a moment in that case.
+    if (wasBusy) setTimeout(next, 120);
+    else next();
   }
 
   // ---------- Game lifecycle ----------
@@ -347,6 +363,47 @@
     "Under your guess is a line showing what you know so far. " +
     "Tap Clues at any time to hear everything you've learned. " +
     "Tap any letter on the screen to hear it.";
+
+  // How to play: shown on screen in large type as well as read aloud, so the
+  // button visibly does something even when the iPad's sound is off.
+  function showHelp() {
+    let panel = document.getElementById("panel-help");
+    if (!panel) {
+      panel = document.createElement("div");
+      panel.id = "panel-help";
+      panel.className = "panel";
+      panel.hidden = true;
+      const body = document.createElement("div");
+      body.className = "panel-body";
+      const head = document.createElement("div");
+      head.className = "panel-head";
+      const h = document.createElement("h2");
+      h.textContent = "How to play";
+      const close = document.createElement("button");
+      close.type = "button";
+      close.className = "big-btn close";
+      close.textContent = "Close";
+      close.addEventListener("click", () => openPanel("panel-menu"));
+      head.append(h, close);
+      const again = document.createElement("button");
+      again.type = "button";
+      again.className = "big-btn wide";
+      again.textContent = "🔊 Read it to me";
+      again.addEventListener("click", () => speak(HELP));
+      const text = document.createElement("div");
+      text.className = "help-text";
+      for (const sentence of HELP.replace(/([.!?])\s+/g, "$1\n").split("\n")) {
+        const p = document.createElement("p");
+        p.textContent = sentence;
+        text.appendChild(p);
+      }
+      body.append(head, again, text);
+      panel.appendChild(body);
+      document.body.appendChild(panel);
+    }
+    openPanel("panel-help");
+    speak(HELP);
+  }
 
   // ---------- Rendering ----------
   const $ = (id) => document.getElementById(id);
@@ -719,7 +776,7 @@
     $("btn-clues").addEventListener("click", () => speak(clueSpeech()));
     $("btn-history").addEventListener("click", showHistory);
     $("btn-menu").addEventListener("click", () => { applySettings(); openPanel("panel-menu"); });
-    $("btn-help").addEventListener("click", () => speak(HELP));
+    $("btn-help").addEventListener("click", showHelp);
     $("btn-new").addEventListener("click", () => {
       if (game.over || game.guesses.length === 0) { newGame(); speak("New word. " + turnText()); }
       else openPanel("panel-confirm");
