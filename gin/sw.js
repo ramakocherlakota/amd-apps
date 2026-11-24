@@ -1,5 +1,5 @@
-// Offline support: serve the app from cache, refresh the cache in the background.
-const CACHE = "gin-v1";
+// Offline support: the app's files are saved so it works without internet.
+const CACHE = "gin-v2";
 const FILES = [
   "./", "index.html", "style.css", "engine.js", "app.js", "manifest.webmanifest",
   "icon.svg", "icon-180.png", "icon-192.png", "icon-512.png",
@@ -19,16 +19,16 @@ self.addEventListener("activate", (e) => {
   );
 });
 
-// Stale-while-revalidate: instant (and offline) loads, updates picked up on the next visit.
+// Network first: always load the newest version when online (asking the server to
+// revalidate rather than trusting the browser's own cache), and fall back to the
+// saved copy when offline.
 self.addEventListener("fetch", (e) => {
-  if (e.request.method !== "GET") return;
+  if (e.request.method !== "GET" || new URL(e.request.url).origin !== location.origin) return;
   e.respondWith(
-    caches.open(CACHE).then(async (cache) => {
-      const cached = await cache.match(e.request, { ignoreSearch: true });
-      const fresh = fetch(e.request)
+    caches.open(CACHE).then((cache) =>
+      fetch(e.request.url, { cache: "no-cache" })
         .then((res) => { if (res.ok) cache.put(e.request, res.clone()); return res; })
-        .catch(() => cached);
-      return cached || fresh;
-    })
+        .catch(() => cache.match(e.request, { ignoreSearch: true }))
+    )
   );
 });
