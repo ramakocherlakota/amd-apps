@@ -193,6 +193,12 @@
     else next();
   }
 
+  // Stop talking right away (used when a screen that is reading aloud is closed).
+  function stopSpeech() {
+    speechRun++;
+    if (synth) synth.cancel();
+  }
+
   // ---------- Game lifecycle ----------
   function newGame() {
     const len = String(settings.length);
@@ -383,7 +389,7 @@
       close.type = "button";
       close.className = "big-btn close";
       close.textContent = "Close";
-      close.addEventListener("click", () => openPanel("panel-menu"));
+      close.addEventListener("click", () => { stopSpeech(); openPanel("panel-menu"); });
       head.append(h, close);
       const again = document.createElement("button");
       again.type = "button";
@@ -792,12 +798,12 @@
     $("btn-end-new").addEventListener("click", () => { newGame(); speak("New word. " + turnText()); });
     $("btn-end-menu").addEventListener("click", () => { applySettings(); openPanel("panel-menu"); });
     $("btn-end-luck").addEventListener("click", showLuck);
-    $("btn-luck-close").addEventListener("click", showEnd);
+    $("btn-luck-close").addEventListener("click", () => { stopSpeech(); showEnd(); });
     $("btn-luck-retry").addEventListener("click", loadLuck);
     $("btn-luck-hear").addEventListener("click", () => { if (game.luck) speak(luckSpeech(game.luck.rows)); });
     $("btn-end-hear").addEventListener("click", () => speak(endSpeech()));
     for (const b of document.querySelectorAll("[data-close]")) {
-      b.addEventListener("click", () => { closePanels(); if (game.over) showEnd(); });
+      b.addEventListener("click", () => { stopSpeech(); closePanels(); if (game.over) showEnd(); });
     }
     for (const g of document.querySelectorAll(".choices[data-setting]")) g.addEventListener("click", onChoice);
     $("voice-select").addEventListener("change", (e) => {

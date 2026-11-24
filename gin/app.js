@@ -102,6 +102,12 @@
     if (wasBusy) setTimeout(next, 120);
     else next();
   }
+
+  // Stop talking right away (used when a screen that is reading aloud is closed).
+  function stopSpeech() {
+    speechRun++;
+    if (synth) synth.cancel();
+  }
   const name = (c) => G.cardName(c);
   const short = (c) => G.RANK_LABELS[G.rank(c)] + G.SUIT_SYMBOLS[G.suit(c)] + VS;
   function list(items) {
@@ -508,9 +514,16 @@
     "cards in a row of the same suit. Aces are low. Cards not in a meld are deadwood: aces count one, " +
     "picture cards ten, others their number. On your turn, draw from the deck or take the top card of " +
     "the discard pile, then throw one card away. When your deadwood is 10 or less after throwing away, " +
-    "you can knock to end the hand; with no deadwood at all, that's gin, worth a 25-point bonus. " +
-    "The other player can then lay loose cards onto the knocker's melds. If they end up with as little " +
-    "deadwood as the knocker, that's an undercut and they win a 25-point bonus. First to 100 points wins. " +
+    "you can knock to end the hand. The other player then lays any loose cards they can onto the " +
+    "knocker's melds. " +
+    "Scoring a hand. If the knocker has less deadwood, the knocker scores the difference between the " +
+    "two deadwood totals. If the other player has as little deadwood as the knocker, or less, that's an " +
+    "undercut: the other player scores the difference plus a 25-point bonus. Knocking with no deadwood " +
+    "at all is gin: the knocker scores the other player's deadwood plus a 25-point bonus, and no cards " +
+    "can be laid off. " +
+    "Winning the game. The game ends when someone reaches 100 points. The winner then gets a 100-point " +
+    "game bonus, and each player gets 25 points for every hand they won. If the loser didn't win a " +
+    "single hand, that's a shutout, and the winner's total is doubled. " +
     "Tap any card to hear it, tap Your hand to hear your melds, and tap Hint for a suggestion.";
 
   // How to play: shown on screen in large type as well as read aloud, so the
@@ -532,7 +545,7 @@
       close.type = "button";
       close.className = "big-btn close";
       close.textContent = "Close";
-      close.addEventListener("click", () => openPanel("panel-menu"));
+      close.addEventListener("click", () => { stopSpeech(); openPanel("panel-menu"); });
       head.append(h, close);
       const again = document.createElement("button");
       again.type = "button";
@@ -880,7 +893,7 @@
       else startHand();
     });
     $("btn-result-hear").addEventListener("click", () => speak(resultText().say));
-    for (const b of document.querySelectorAll("[data-close]")) b.addEventListener("click", closePanels);
+    for (const b of document.querySelectorAll("[data-close]")) b.addEventListener("click", () => { stopSpeech(); closePanels(); });
     for (const g of document.querySelectorAll(".choices[data-setting]")) g.addEventListener("click", onChoice);
     $("voice-select").addEventListener("change", (e) => {
       settings.voice = e.target.value;

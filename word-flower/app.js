@@ -166,6 +166,12 @@
     else next();
   }
 
+  // Stop talking right away (used when a screen that is reading aloud is closed).
+  function stopSpeech() {
+    speechRun++;
+    if (synth) synth.cancel();
+  }
+
   function lettersSpeech() {
     return `The middle letter is ${letterSay(game.center)}. Every word must use it. ` +
       `The other letters are ${listSay(game.letters.split("").map(letterSay))}.`;
@@ -339,7 +345,7 @@
       close.type = "button";
       close.className = "big-btn close";
       close.textContent = "Close";
-      close.addEventListener("click", () => openPanel("panel-menu"));
+      close.addEventListener("click", () => { stopSpeech(); openPanel("panel-menu"); });
       head.append(h, close);
       const again = document.createElement("button");
       again.type = "button";
@@ -603,7 +609,7 @@
     });
     $("btn-confirm-yes").addEventListener("click", () => { newPuzzle(); speak("New puzzle. " + lettersSpeech()); });
 
-    for (const b of document.querySelectorAll("[data-close]")) b.addEventListener("click", closePanels);
+    for (const b of document.querySelectorAll("[data-close]")) b.addEventListener("click", () => { stopSpeech(); closePanels(); });
     for (const g of document.querySelectorAll(".choices[data-setting]")) g.addEventListener("click", onChoice);
     $("voice-select").addEventListener("change", (e) => {
       settings.voice = e.target.value;
