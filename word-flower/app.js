@@ -100,7 +100,7 @@
   };
   function name(l) { return LETTER_SOUNDS[l] || l; }
   function letterSay(l) { return settings.examples ? `${name(l)}, as in ${EXAMPLES[l]}` : name(l); }
-  function spell(word) { return word.split("").map(name).join(", "); }
+  function spell(word) { return "|" + word.split("").map(name).join(", ") + "|"; }
   function listSay(items) {
     if (items.length <= 1) return items.join("");
     return items.slice(0, -1).join("; ") + "; and " + items[items.length - 1];
@@ -122,14 +122,32 @@
     return voices.find((v) => good(v) && us(v)) || voices.find(good) ||
       voices.find((v) => us(v) && v.default) || voices.find(us) || voices[0] || null;
   }
+  /* Speak text with short pauses: it's split into pieces at the end of each sentence
+     and wherever a "|" appears, and the pieces are spoken one at a time with a
+     moment of silence between them (longer at slower speaking speeds). Speaking
+     again cancels whatever is still queued. */
+  let speechRun = 0;
+  let currentUtterance = null;   // kept so the browser doesn't drop it before it ends
   function speak(text) {
     if (!synth || !text) return;
     synth.cancel();
-    const u = new SpeechSynthesisUtterance(text);
+    const run = ++speechRun;
+    const parts = String(text).replace(/([.!?])\s+/g, "$1|").split("|")
+      .map((s) => s.trim()).filter((s) => /[a-z0-9]/i.test(s));
+    const rate = Number(settings.rate) || 0.85;
+    const pause = Math.round(320 / rate);
     const v = pickVoice();
-    if (v) { u.voice = v; u.lang = v.lang; } else { u.lang = "en-US"; }
-    u.rate = Number(settings.rate) || 0.85;
-    synth.speak(u);
+    let i = 0;
+    const next = () => {
+      if (run !== speechRun || i >= parts.length) return;
+      const u = new SpeechSynthesisUtterance(parts[i++]);
+      if (v) { u.voice = v; u.lang = v.lang; } else { u.lang = "en-US"; }
+      u.rate = rate;
+      u.onend = () => { if (run === speechRun && i < parts.length) setTimeout(next, pause); };
+      currentUtterance = u;
+      synth.speak(u);
+    };
+    next();
   }
 
   function lettersSpeech() {
@@ -189,14 +207,14 @@
       speak("Tap letters to make a word, then tap Check.");
       return;
     }
-    if (w.length < 4) return reject("Too short", `${spell(w)} is too short. Words need at least 4 letters.`);
+    if (w.length < 4) return reject("Too short", `Too short: ${spell(w)}. Words need at least 4 letters.`);
     if (!w.includes(game.center)) {
       return reject(`Use the middle letter ${game.center.toUpperCase()}`,
         `Every word must use the middle letter, ${letterSay(game.center)}.`);
     }
     if (game.found.includes(w) || game.bonus.includes(w)) return reject("Already found", `You already found ${w}.`);
     const bonus = !answerSet.has(w) && REAL.has(w);
-    if (!answerSet.has(w) && !bonus) return reject("Not in my word list", `I don't know the word ${spell(w)}.`);
+    if (!answerSet.has(w) && !bonus) return reject("Not in my word list", `I don't know that word: ${spell(w)}.`);
 
     const oldRank = rank(score());
     const list = bonus ? game.bonus : game.found;

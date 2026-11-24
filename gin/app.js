@@ -59,14 +59,32 @@
     return voices.find((v) => good(v) && us(v)) || voices.find(good) ||
       voices.find((v) => us(v) && v.default) || voices.find(us) || voices[0] || null;
   }
+  /* Speak text with short pauses: it's split into pieces at the end of each sentence
+     and wherever a "|" appears, and the pieces are spoken one at a time with a
+     moment of silence between them (longer at slower speaking speeds). Speaking
+     again cancels whatever is still queued. */
+  let speechRun = 0;
+  let currentUtterance = null;   // kept so the browser doesn't drop it before it ends
   function speak(text) {
     if (!synth || !text) return;
     synth.cancel();
-    const u = new SpeechSynthesisUtterance(text);
+    const run = ++speechRun;
+    const parts = String(text).replace(/([.!?])\s+/g, "$1|").split("|")
+      .map((s) => s.trim()).filter((s) => /[a-z0-9]/i.test(s));
+    const rate = Number(settings.rate) || 0.85;
+    const pause = Math.round(320 / rate);
     const v = pickVoice();
-    if (v) { u.voice = v; u.lang = v.lang; } else { u.lang = "en-US"; }
-    u.rate = Number(settings.rate) || 0.85;
-    synth.speak(u);
+    let i = 0;
+    const next = () => {
+      if (run !== speechRun || i >= parts.length) return;
+      const u = new SpeechSynthesisUtterance(parts[i++]);
+      if (v) { u.voice = v; u.lang = v.lang; } else { u.lang = "en-US"; }
+      u.rate = rate;
+      u.onend = () => { if (run === speechRun && i < parts.length) setTimeout(next, pause); };
+      currentUtterance = u;
+      synth.speak(u);
+    };
+    next();
   }
   const name = (c) => G.cardName(c);
   const short = (c) => G.RANK_LABELS[G.rank(c)] + G.SUIT_SYMBOLS[G.suit(c)] + VS;

@@ -123,12 +123,8 @@
     const name = letterName(l);
     return settings.examples ? `${name}, as in ${EXAMPLES[l]}` : name;
   }
-  function letterList(letters) {
-    if (letters.length === 1) return letterSay(letters[0]);
-    return letters.slice(0, -1).map(letterSay).join("; ") + "; and " + letterSay(letters[letters.length - 1]);
-  }
   function spell(word) {
-    return word.split("").map(letterName).join(", ");
+    return "|" + word.split("").map(letterName).join(", ") + "|";
   }
   const ORDINALS = ["first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth"];
   function spots(set) {
@@ -153,14 +149,32 @@
     return voices.find((v) => good(v) && us(v)) || voices.find(good) ||
       voices.find((v) => us(v) && v.default) || voices.find(us) || voices[0] || null;
   }
+  /* Speak text with short pauses: it's split into pieces at the end of each sentence
+     and wherever a "|" appears, and the pieces are spoken one at a time with a
+     moment of silence between them (longer at slower speaking speeds). Speaking
+     again cancels whatever is still queued. */
+  let speechRun = 0;
+  let currentUtterance = null;   // kept so the browser doesn't drop it before it ends
   function speak(text) {
     if (!synth || !text) return;
     synth.cancel();
-    const u = new SpeechSynthesisUtterance(text);
+    const run = ++speechRun;
+    const parts = String(text).replace(/([.!?])\s+/g, "$1|").split("|")
+      .map((s) => s.trim()).filter((s) => /[a-z0-9]/i.test(s));
+    const rate = Number(settings.rate) || 0.85;
+    const pause = Math.round(320 / rate);
     const v = pickVoice();
-    if (v) { u.voice = v; u.lang = v.lang; } else { u.lang = "en-US"; }
-    u.rate = Number(settings.rate) || 0.85;
-    synth.speak(u);
+    let i = 0;
+    const next = () => {
+      if (run !== speechRun || i >= parts.length) return;
+      const u = new SpeechSynthesisUtterance(parts[i++]);
+      if (v) { u.voice = v; u.lang = v.lang; } else { u.lang = "en-US"; }
+      u.rate = rate;
+      u.onend = () => { if (run === speechRun && i < parts.length) setTimeout(next, pause); };
+      currentUtterance = u;
+      synth.speak(u);
+    };
+    next();
   }
 
   // ---------- Game lifecycle ----------
@@ -241,7 +255,7 @@
     }
     if (settings.strict && !LISTS[String(n)].allowed.has(word)) {
       setStatus(`“${word.toUpperCase()}” isn't in my word list`);
-      speak(`I don't know the word ${spell(word)}. Try a different word. It doesn't use up a guess.`);
+      speak(`I don't know that word: ${spell(word)}. Try a different word. It doesn't use up a guess.`);
       shake();
       return;
     }
@@ -278,11 +292,11 @@
       else if (res[i] === "present") wrongSpot.push(word[i]);
       else none.push(word[i]);
     }
-    const parts = [`${word}.`];
+    const parts = [`You guessed ${word}.`];
     if (right.length) {
-      parts.push("Right spot: " + right.map((i) => `${letterSay(word[i])}, ${ORDINALS[i]} letter`).join("; ") + ".");
+      parts.push("Right spot: | " + right.map((i) => `${letterSay(word[i])}, ${ORDINALS[i]} letter`).join(" | ") + ".");
     }
-    if (wrongSpot.length) parts.push("In the word, but in a different spot: " + letterList(wrongSpot) + ".");
+    if (wrongSpot.length) parts.push("In the word, but in a different spot: | " + wrongSpot.map(letterSay).join(" | ") + ".");
     if (none.length) parts.push("Not in the word: " + [...new Set(none)].map(letterName).join(", ") + ".");
     if (!right.length && !wrongSpot.length) parts.push("None of those letters are in the word. That's still useful!");
     if (game.maxGuesses) {
