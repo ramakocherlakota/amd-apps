@@ -149,8 +149,10 @@ button { cursor: pointer; }
   border-radius: 12px;
   line-height: 1;
 }
-.card .rank { font-size: calc(var(--card-w) * 0.56); letter-spacing: -0.04em; }
-.card .suit { font-size: calc(var(--card-w) * 0.5); margin-top: calc(var(--card-w) * 0.04); }
+.card .rank { font-size: calc(var(--card-w) * 0.52); letter-spacing: -0.04em; }
+.card .suit { font-size: calc(var(--card-w) * 0.78); line-height: 0.9; }
+/* The font's diamond is much narrower than the other suits; widen it to match. */
+.card.s2 .suit, .played-row.s2 .big-suit { display: inline-block; transform: scaleX(1.4); }
 .card.s0 { color: var(--spades); }
 .card.s1 { color: var(--hearts); }
 .card.s2 { color: var(--diamonds); }
@@ -437,7 +439,7 @@ button { cursor: pointer; }
   border-radius: 14px;
   text-align: left;
 }
-.played-row .big-suit { font-size: 56px; min-width: 64px; text-align: center; }
+.played-row .big-suit { font-size: 84px; line-height: 1; min-width: 92px; text-align: center; }
 .played-row .ranks { font-size: clamp(28px, 4vw, 44px); letter-spacing: 0.04em; }
 .played-row.s0 .ranks { color: var(--spades); }
 .played-row.s1 .ranks { color: var(--hearts); }
