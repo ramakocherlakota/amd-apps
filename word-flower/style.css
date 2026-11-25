@@ -462,3 +462,28 @@ button { cursor: pointer; }
   .word .placeholder { font-size: 20px; }
   .message { font-size: 20px; }
 }
+
+/* ---------- Puzzle number ---------- */
+.puzzle-number {
+  background: none;
+  border: 0;
+  padding: 0;
+  text-align: left;
+  font-size: clamp(26px, 3.6vw, 38px);
+}
+.goto { display: flex; flex-wrap: wrap; gap: 12px; }
+.goto-input {
+  flex: 1 1 160px;
+  min-width: 0;
+  min-height: 80px;
+  padding: 0 18px;
+  font: inherit;
+  font-size: clamp(30px, 4.4vw, 44px);
+  color: var(--fg);
+  background: var(--key-bg);
+  border: 4px solid var(--soft-line);
+  border-radius: 16px;
+}
+.goto-input:focus { outline: 5px solid var(--line); outline-offset: 2px; }
+.goto-input::placeholder { color: var(--dim); }
+.goto .big-btn { flex: 1 1 260px; }

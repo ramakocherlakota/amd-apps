@@ -80,7 +80,10 @@ Low-vision design (same themes, sizes, font and speech settings as Word Guess):
 - **My words** lists found words in large type, reads them aloud, and can show the
   words not yet found.
 - Puzzles never use S, so there are no easy plurals. There are about 3,500 puzzles,
-  played in order without repeats.
+  numbered the same on every device. Each device starts at a random one, then plays
+  them in order, so none repeats until all have been played. **Menu → Puzzle number**
+  shows the current number and can jump to any puzzle, so two people can play the
+  same one; play carries on in order from there.
 
 The word lists are built by `tools/build_flower.py` from SCOWL (common words, no
 names) filtered by everyday frequency, with `tools/flower_blocklist.txt` removing

@@ -67,8 +67,17 @@
     clueWord = null;
   }
 
-  function newPuzzle() {
-    const index = ((load("puzzleIndex", -1) + 1) % PUZZLES.length);
+  /* Puzzles are numbered 1 to PUZZLES.length, the same on every device, and each
+     device plays them in order so none repeats until all have been played. A
+     device's very first puzzle is picked at random, so different devices start
+     in different places; "Play puzzle number…" in the Menu lets two people play
+     the same one, and play then carries on in order from there. */
+  function newPuzzle(number) {
+    const prev = load("puzzleIndex", null);
+    let index;
+    if (number) index = number - 1;
+    else if (prev === null) index = Math.floor(Math.random() * PUZZLES.length);
+    else index = (prev + 1) % PUZZLES.length;
     save("puzzleIndex", index);
     const p = PUZZLES[index];
     const center = p[7];
@@ -611,13 +620,46 @@
       : game.bonus.length ? `Bonus words: ${game.bonus.join(", ")}.` : "You haven't found any words yet."));
     $("btn-missed").addEventListener("click", onMissed);
 
-    $("btn-menu").addEventListener("click", () => { applySettings(); openPanel("panel-menu"); });
-    $("btn-help").addEventListener("click", showHelp);
-    $("btn-new").addEventListener("click", () => {
-      if (!game.found.length) { newPuzzle(); speak("New puzzle. " + lettersSpeech()); }
-      else openPanel("panel-confirm");
+    $("btn-menu").addEventListener("click", () => {
+      applySettings();
+      $("puzzle-number").textContent =
+        `This is puzzle ${(game.index + 1).toLocaleString("en-US")} of ${PUZZLES.length.toLocaleString("en-US")}.  🔊`;
+      $("goto-note").textContent = "Puzzle numbers are the same on every device, so two people can play the same one.";
+      openPanel("panel-menu");
     });
-    $("btn-confirm-yes").addEventListener("click", () => { newPuzzle(); speak("New puzzle. " + lettersSpeech()); });
+    $("btn-help").addEventListener("click", showHelp);
+    // Start the next puzzle, or puzzle `number`; asks first if words would be lost.
+    let pendingNumber = null;
+    const startPuzzle = (number) => {
+      newPuzzle(number);
+      speak(`Puzzle number ${game.index + 1}. | ${lettersSpeech()}`);
+    };
+    const askThenStart = (number) => {
+      if (!game.found.length && !game.bonus.length) { startPuzzle(number); return; }
+      pendingNumber = number;
+      $("confirm-title").textContent = number
+        ? `Leave this puzzle and play puzzle ${number}?`
+        : "Leave this puzzle and start a new one?";
+      openPanel("panel-confirm");
+    };
+    $("btn-new").addEventListener("click", () => askThenStart(null));
+    $("btn-confirm-yes").addEventListener("click", () => startPuzzle(pendingNumber));
+    const goTo = () => {
+      const raw = $("goto-input").value.replace(/[^0-9]/g, "");
+      const n = Number(raw);
+      if (!raw || n < 1 || n > PUZZLES.length) {
+        $("goto-note").textContent = `Enter a number from 1 to ${PUZZLES.length.toLocaleString("en-US")}.`;
+        speak(`Please enter a puzzle number from 1 to ${PUZZLES.length}.`);
+        return;
+      }
+      $("goto-input").value = "";
+      $("goto-input").blur();
+      askThenStart(n);
+    };
+    $("btn-goto").addEventListener("click", goTo);
+    $("goto-input").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); goTo(); } });
+    $("puzzle-number").addEventListener("click", () =>
+      speak(`This is puzzle number ${game.index + 1}, out of ${PUZZLES.length}.`));
 
     for (const b of document.querySelectorAll("[data-close]")) b.addEventListener("click", () => { stopSpeech(); closePanels(); });
     for (const g of document.querySelectorAll(".choices[data-setting]")) g.addEventListener("click", onChoice);

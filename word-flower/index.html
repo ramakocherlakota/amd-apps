@@ -88,6 +88,17 @@
       <button id="btn-help" class="big-btn wide" type="button">🔊 How to play</button>
 
       <div class="setting">
+        <h3>Puzzle number</h3>
+        <button id="puzzle-number" class="puzzle-number" type="button"></button>
+        <div class="goto">
+          <input id="goto-input" class="goto-input" type="text" inputmode="numeric" pattern="[0-9]*"
+                 autocomplete="off" placeholder="Number" aria-label="Puzzle number to play">
+          <button id="btn-goto" class="big-btn" type="button">Play this puzzle</button>
+        </div>
+        <p id="goto-note" class="note"></p>
+      </div>
+
+      <div class="setting">
         <h3>Colors</h3>
         <div class="choices" data-setting="theme">
           <button type="button" data-value="yellow">Yellow on black</button>
@@ -136,13 +147,13 @@
         <p class="note">To try other voices on iPad: Settings → Accessibility → Read &amp; Speak → Voices → English. Safari often doesn’t offer downloaded “Enhanced” or “Premium” voices to web games, so they may not appear in this list. If one does, it’s chosen automatically.</p>
       </div>
 
-      <p class="note version">Version 2026-11-25a</p>
+      <p class="note version">Version 2026-11-25b</p>
     </div>
   </div>
 
   <div id="panel-confirm" class="panel" hidden>
     <div class="panel-body center">
-      <p class="big-title">Leave this puzzle and start a new one?</p>
+      <p id="confirm-title" class="big-title">Leave this puzzle and start a new one?</p>
       <p class="note">Your words for this puzzle will be cleared.</p>
       <button id="btn-confirm-yes" class="big-btn primary" type="button">Yes, new puzzle</button>
       <button class="big-btn" data-close type="button">No, keep playing</button>
