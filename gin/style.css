@@ -487,3 +487,22 @@ button { cursor: pointer; }
 .check-btn[aria-checked="true"] .box { background: var(--fg); color: var(--bg); }
 .check-btn[aria-checked="true"] .box::after { content: "✓"; font-weight: 700; }
 .sub-heading { margin-top: 8px !important; }
+
+/* ---------- Arranging cards ---------- */
+.hand-row { display: flex; gap: 8px; }
+.hand-row .hand-label { flex: 1 1 auto; min-width: 0; }
+.hand-row .sort-btn { flex: 0 0 auto; white-space: nowrap; }
+.card.movable { touch-action: none; }
+.card.dragging {
+  position: relative;
+  z-index: 5;
+  opacity: 0.9;
+  border: 6px solid var(--line);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.6);
+  transition: none;
+}
+.act.arrow { flex: 0 0 auto; min-width: 84px; font-size: clamp(28px, 3.6vw, 40px); }
+/* Narrow screens: the sort button goes under "Your hand" instead of beside it. */
+@media (max-width: 600px) {
+  .hand-row { flex-direction: column; }
+}

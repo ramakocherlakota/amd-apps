@@ -155,6 +155,7 @@
       passes: 0,
       mustDraw: false,
       justTaken: null,
+      customOrder: null,       // her own arrangement of the loose cards, if she made one
       drawn: null,
       result: null,
       msg: "",
@@ -595,17 +596,27 @@
 
   // With "melds first", runs and sets come first in boxes and the loose cards follow,
   // sorted by suit or by number. Without it, the whole hand is sorted that way.
+  // Cards she has arranged herself keep her order; cards new to the group (a fresh
+  // draw) join at the end. Cards no longer in the group drop out of the order.
+  function inCustomOrder(cards) {
+    const order = game.customOrder.filter((c) => cards.includes(c));
+    const rest = cards.filter((c) => !order.includes(c));
+    return order.concat(rest);
+  }
+
   function groupsFor(hand) {
     const bySuit = settings.sortBy !== "rank";
     if (!settings.meldsFirst) {
+      if (game.customOrder) return [{ cls: "plain movable", cards: inCustomOrder(hand.slice().sort(bySuit ? G.bySuit : G.byRank)) }];
       if (!bySuit) return [{ cls: "plain", cards: hand.slice().sort(G.byRank) }];
       return [0, 1, 2, 3].map((s) => ({ cls: "plain", cards: hand.filter((c) => G.suit(c) === s).sort(G.byRank) }))
         .filter((g) => g.cards.length);
     }
     const b = G.best(hand);
     const melds = b.melds.map((m) => ({ cls: "meld", cards: m.slice().sort(G.isSet(m) ? G.bySuit : G.byRank) }));
-    const loose = b.deadwood.slice().sort(bySuit ? G.bySuit : G.byRank);
-    return melds.concat(loose.length ? [{ cls: "loose", cards: loose }] : []);
+    let loose = b.deadwood.slice().sort(bySuit ? G.bySuit : G.byRank);
+    if (game.customOrder) loose = inCustomOrder(loose);
+    return melds.concat(loose.length ? [{ cls: "loose movable", cards: loose }] : []);
   }
 
   function render() {
@@ -656,17 +667,120 @@
     const hand = game.hands.you;
     const b = G.best(hand);
     $("hand-label").textContent = `Your hand · Deadwood ${b.value}  🔊`;
-    const els = groupsFor(hand).map((g) => {
+    const groups = groupsFor(hand);
+    // The cards she can rearrange: the loose cards (or the whole hand, without melds first).
+    movable = [];
+    for (const g of groups) if (g.cls.includes("movable") || (!settings.meldsFirst && g.cls === "plain")) movable.push(...g.cards);
+    if (game.customOrder) game.customOrder = movable.slice();
+    const els = groups.map((g) => {
       const div = document.createElement("div");
       div.className = "group " + g.cls;
       for (const c of g.cards) {
         const el = cardEl(c, (c === selected ? "selected" : "") + (c === game.drawn ? " new" : ""));
-        el.addEventListener("click", () => tapCard(c));
+        el.addEventListener("click", () => {
+          if (suppressClick) { suppressClick = false; return; }
+          tapCard(c);
+        });
+        if (movable.includes(c)) {
+          el.classList.add("movable");
+          el.addEventListener("pointerdown", (e) => startDrag(e, c, el));
+        }
         div.appendChild(el);
       }
       return div;
     });
     $("hand").replaceChildren(...els);
+    renderSortButton();
+  }
+
+  // ---------- Arranging her own cards ----------
+  let movable = [];          // the rearrangeable cards, in the order shown
+  let suppressClick = false; // a drag ends with a click event we must ignore
+
+  function moveTo(c, index) {
+    const order = movable.filter((x) => x !== c);
+    index = Math.max(0, Math.min(order.length, index));
+    order.splice(index, 0, c);
+    game.customOrder = order;
+    persist();
+    render();
+  }
+
+  function moveBy(c, delta) {
+    const i = movable.indexOf(c);
+    if (i < 0) return;
+    const j = i + delta;
+    if (j < 0 || j >= movable.length) {
+      speak(delta < 0 ? "It's already first." : "It's already last.");
+      return;
+    }
+    moveTo(c, j);
+    speak(`Moved the ${name(c)} ${delta < 0 ? "left" : "right"}. It's card ${j + 1} of ${movable.length}.`);
+  }
+
+  // Drag a card to a new place. A press that hardly moves is still an ordinary tap.
+  function startDrag(e, c, el) {
+    if (e.button !== undefined && e.button !== 0) return;
+    const x0 = e.clientX, y0 = e.clientY;
+    let dragging = false;
+    const onMove = (ev) => {
+      const dx = ev.clientX - x0, dy = ev.clientY - y0;
+      if (!dragging) {
+        if (Math.hypot(dx, dy) < 14) return;
+        dragging = true;
+        el.classList.add("dragging");
+      }
+      el.style.transform = `translate(${dx}px, ${dy}px)`;
+      ev.preventDefault();
+    };
+    const onUp = (ev) => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onUp);
+      if (!dragging) return;
+      suppressClick = true;
+      setTimeout(() => { suppressClick = false; }, 300);
+      // Where did it land? Count the other movable cards that come before the drop point.
+      const others = [...document.querySelectorAll("#hand .card.movable")].filter((x) => x !== el);
+      // A card counts as "before" the drop point if the point is below its row, or
+      // in its row and to the right of its middle.
+      let index = 0;
+      for (const o of others) {
+        const r = o.getBoundingClientRect();
+        const below = ev.clientY > r.bottom;
+        const sameRowRight = ev.clientY >= r.top && ev.clientY <= r.bottom && ev.clientX > r.left + r.width / 2;
+        if (below || sameRowRight) index++;
+      }
+      const before = movable.indexOf(c);
+      moveTo(c, index);
+      const after = movable.indexOf(c);
+      if (settings.speakCards) {
+        speak(after === before ? `The ${name(c)} stayed where it was.` : `Moved the ${name(c)}. It's card ${after + 1} of ${movable.length}.`);
+      }
+    };
+    window.addEventListener("pointermove", onMove, { passive: false });
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onUp);
+  }
+
+  function sortLabel(by) { return by === "rank" ? "number" : "suit"; }
+
+  function renderSortButton() {
+    const btn = $("btn-sort");
+    const next = game.customOrder ? settings.sortBy : (settings.sortBy === "rank" ? "suit" : "rank");
+    btn.textContent = `⇅ Sort by ${sortLabel(next)}`;
+    btn.dataset.next = next;
+  }
+
+  function quickSort() {
+    const next = $("btn-sort").dataset.next;
+    game.customOrder = null;
+    settings.sortBy = next;
+    save("settings", settings);
+    persist();
+    applySettings();
+    render();
+    speak(`${settings.meldsFirst ? "Loose cards" : "Your cards"} sorted by ${sortLabel(next)}.`);
   }
 
   function actButton(label, cls, onTap, aria) {
@@ -691,6 +805,8 @@
         a.push(actButton(`Take the ${short(top())}`, "", takeFromDiscard, `Take the ${name(top())}`));
       }
     } else if (p === "discard") {
+      const canMove = selected !== null && movable.includes(selected);
+      if (canMove) a.push(actButton("◀", "arrow", () => moveBy(selected, -1), "Move the chosen card left"));
       if (selected === null) {
         a.push(actButton("Tap a card to throw away", "info", null));
       } else if (selected === game.justTaken) {
@@ -701,6 +817,7 @@
         if (dw === 0) a.push(actButton("Gin!", "go", () => discard(true), "Go gin"));
         else if (dw <= 10) a.push(actButton(`Knock (${dw})`, "go", () => discard(true), `Knock with ${dw} deadwood`));
       }
+      if (canMove) a.push(actButton("▶", "arrow", () => moveBy(selected, 1), "Move the chosen card right"));
     } else if (p === "over") {
       a.push(actButton("See the result", "primary", () => showResult(false)));
     } else {
@@ -861,6 +978,7 @@
     else if (typeof DEFAULT_SETTINGS[key] === "number") value = Number(value);
     settings[key] = value;
     save("settings", settings);
+    if (key === "sortBy" || key === "meldsFirst") { game.customOrder = null; persist(); }
     applySettings();
     render();
     if (key === "rate") speak("This is the new speaking speed.");
@@ -892,6 +1010,7 @@
     $("message").addEventListener("click", () => speak(game.msg.replace(/(10|[2-9AJQK])([♠♥♦♣])\uFE0E?/g,
       (m, r, su) => name(G.SUIT_SYMBOLS.indexOf(su) * 13 + G.RANK_LABELS.indexOf(r)))));
     $("hand-label").addEventListener("click", () => speak(handSpeech()));
+    $("btn-sort").addEventListener("click", quickSort);
     $("btn-score").addEventListener("click", () => speak(scoreSpeech()));
     $("btn-hint").addEventListener("click", hint);
     $("btn-played").addEventListener("click", showPlayed);
@@ -913,6 +1032,8 @@
     $("chk-melds").addEventListener("click", () => {
       settings.meldsFirst = !settings.meldsFirst;
       save("settings", settings);
+      game.customOrder = null;
+      persist();
       applySettings();
       render();
       speak(settings.meldsFirst
@@ -947,6 +1068,7 @@
     get game() { return game; },
     get selected() { return selected; },
     setCpuDelay(ms) { cpuDelay = ms; },
+    render() { render(); },
   };
 
   init();

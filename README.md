@@ -107,6 +107,10 @@ Low-vision design (same themes, sizes, font and speech settings as the word game
   sets come first in solid boxes and the loose cards follow in a dashed box, sorted by
   suit or by number; unchecked, the whole hand is sorted that way. The deadwood total is
   always shown.
+- **She can arrange the loose cards herself**: drag a card to a new spot, or choose it
+  and tap ◀ / ▶ beside Discard. Her order is kept as cards come and go (a new card joins
+  at the end). The **⇅ Sort by…** button beside "Your hand" sorts them again in one tap,
+  switching between by suit and by number.
 - **Spoken table talk**: every computer move is read out ("I took your 8 of hearts. I
   threw away the jack of clubs."), and every card you tap is named along with its role.
 - **Two taps to discard** (choose a card, then Discard / Knock / Gin), so a mis-tap
