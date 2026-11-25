@@ -48,12 +48,12 @@
 :root {
   --flower: min(94vw, 54vh, 720px);
   --act-h: clamp(64px, 8.5vh, 96px);
-  --word-max: 120px;
+  --word-max: clamp(60px, 13vh, 120px);
 }
 :root[data-size="huge"] {
   --flower: min(98vw, 56vh, 780px);
   --act-h: clamp(72px, 9.5vh, 112px);
-  --word-max: 150px;
+  --word-max: clamp(70px, 16vh, 150px);
 }
 @media (min-aspect-ratio: 1/1) {
   :root { --flower: min(52vw, calc(100vh - 120px), 760px); }
@@ -117,7 +117,7 @@ button { cursor: pointer; }
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   grid-template-areas: "score" "word" "message" "flower" "actions";
-  grid-template-rows: auto auto auto 1fr auto;
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
   justify-items: center;
   align-items: center;
   gap: clamp(6px, 1.4vh, 16px);
@@ -126,9 +126,9 @@ button { cursor: pointer; }
 }
 @media (min-aspect-ratio: 1/1) {
   .game {
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
     grid-template-areas: "score flower" "word flower" "message flower" "actions flower";
-    grid-template-rows: auto 1fr auto auto;
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
     column-gap: 24px;
   }
 }
@@ -215,9 +215,21 @@ button { cursor: pointer; }
 }
 
 /* ---------- The flower of letters ---------- */
-.flower {
+/* The flower fills whatever space the other rows leave (app.js measures this
+   cell and sets --flower), so the whole game fits on any screen. */
+.flower-cell {
   grid-area: flower;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.flower {
   position: relative;
+  flex: none;
   width: var(--flower);
   height: var(--flower);
 }
@@ -413,4 +425,40 @@ button { cursor: pointer; }
   font-weight: 400;
   font-size: clamp(26px, 3.6vw, 38px);
   line-height: 1.4;
+}
+
+/* Phones: icon above label in the top bar, so the labels fit. */
+@media (max-width: 520px) {
+  .topbar { gap: 8px; padding: 8px 10px 0; }
+  .bar-btn {
+    flex-direction: column;
+    gap: 2px;
+    min-height: 68px;
+    padding: 4px 2px;
+    font-size: 19px;
+    line-height: 1.1;
+  }
+  .bar-icon { font-size: 24px; }
+}
+
+/* Phones: a little less space around the score and message, more for the flower. */
+@media (max-width: 520px) {
+  .game { gap: 4px; padding: 6px 12px 10px; }
+  .score { gap: 6px; }
+  .score-text { font-size: 21px; white-space: nowrap; }
+  .bar { height: 18px; }
+  .message { font-size: 22px; }
+}
+
+/* Very short screens (a phone held sideways): compact the left-hand column. */
+@media (max-height: 500px) {
+  :root { --word-max: 56px; --act-h: 50px; }
+  .topbar { padding-top: 6px; }
+  .bar-btn { min-height: 48px; }
+  .game { gap: 4px; padding: 6px 12px 8px; }
+  .score { gap: 4px; }
+  .score-text { font-size: 20px; white-space: nowrap; }
+  .bar { height: 14px; border-width: 2px; }
+  .word .placeholder { font-size: 20px; }
+  .message { font-size: 20px; }
 }

@@ -378,7 +378,10 @@
 
   function renderScore() {
     const s = score();
-    $("score-text").textContent = `${rank(s)} · ${s} point${s === 1 ? "" : "s"} · ${game.found.length} of ${answers.length} words`;
+    // Phones get a shorter line so it fits on one row and leaves room for the flower.
+    $("score-text").textContent = window.innerWidth < 520 || window.innerHeight < 500
+      ? `${rank(s)} · ${s} pts · ${game.found.length}/${answers.length} words`
+      : `${rank(s)} · ${s} point${s === 1 ? "" : "s"} · ${game.found.length} of ${answers.length} words`;
     $("bar-fill").style.width = (maxScore ? Math.min(100, (100 * s) / maxScore) : 0) + "%";
   }
 
@@ -400,6 +403,13 @@
       el.style.setProperty("--word-size", `min(var(--word-max), ${Math.floor(avail / (w.length * 0.78 + 0.3))}px)`);
     }
     el.setAttribute("aria-label", w ? `Your word: ${w}` : "No letters yet");
+  }
+
+  function fitFlower() {
+    const cell = $("flower-cell");
+    const cap = settings.size === "huge" ? 820 : 760;
+    const size = Math.floor(Math.min(cell.clientWidth, cell.clientHeight, cap));
+    if (size > 0) document.documentElement.style.setProperty("--flower", size + "px");
   }
 
   function renderFlower() {
@@ -557,7 +567,7 @@
     settings[key] = value;
     save("settings", settings);
     applySettings();
-    if (key === "size") renderWord();
+    if (key === "size") { renderWord(); fitFlower(); }
     if (key === "rate") speak("This is the new speaking speed.");
     else if (key === "examples") speak(value ? "Letters will sound like this: B, as in ball." : "Letters will sound like this: B.");
     else speak(btn.textContent);
@@ -630,7 +640,12 @@
       else if (e.key === "Enter") { submit(); e.preventDefault(); }
       else if (e.key === " ") { shuffle(); e.preventDefault(); }
     });
-    window.addEventListener("resize", renderWord);
+    window.addEventListener("resize", () => { renderWord(); renderScore(); });
+    // Keep the flower as big as the leftover space allows, whatever the screen.
+    const cell = $("flower-cell");
+    if (window.ResizeObserver) new ResizeObserver(fitFlower).observe(cell);
+    window.addEventListener("resize", fitFlower);
+    fitFlower();
 
     if (synth) {
       loadVoices();
